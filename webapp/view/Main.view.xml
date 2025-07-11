@@ -1,0 +1,177 @@
+<mvc:View controllerName="com.xcaret.receptionpublic.controller.Main"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+	xmlns:fb="sap.ui.comp.filterbar"
+	xmlns:svm="sap.ui.comp.smartvariants"
+	xmlns:semantic="sap.f.semantic"
+    id="mainView">
+    <semantic:SemanticPage id="mainPage" headerPinnable="false" toggleHeaderOnTitleClick="false" >
+		<semantic:titleHeading>
+			<svm:SmartVariantManagement id="svm" showExecuteOnSelection="true" persistencyKey="PROG_ALMACEN_VARIANT" save="onVariantSave" />
+		</semantic:titleHeading>
+		<!-- BEGIN FILTER BAR -->
+		<semantic:headerContent>
+			<fb:FilterBar id="filterbar" persistencyKey="myPersKey" useToolbar="false" search="_onQuery">
+					<fb:filterGroupItems>
+						<fb:FilterGroupItem name="IdEBELNG" label="{i18n>Main_EBELN}" groupName="Group1" visibleInFilterBar="true">
+							<fb:control>
+								<MultiInput width="40%" id="IdEBELN" tokenUpdate="updateTokenIdClear" valueHelpRequest="valueHelpFilterNew" showSuggestion="true"
+									suggestionItems="{serviceModel>/filteredReception}">
+									<suggestionItems>
+										<core:Item key="{serviceModel>EBELN}" text="{serviceModel>EBELN}"/>
+									</suggestionItems>
+								</MultiInput>
+							</fb:control>
+						</fb:FilterGroupItem>
+						<fb:FilterGroupItem name="IdPSPNRG" label="{i18n>Main_ID_PEP_NAME}" groupName="Group1" visibleInFilterBar="true">
+							<fb:control>
+								<MultiInput width="40%" id="IdID_PEP" tokenUpdate="updateTokenIdClear" valueHelpRequest="valueHelpFilterNew" showSuggestion="true"
+									suggestionItems="{serviceModel>/filteredProject}">
+									<suggestionItems>
+										<core:Item key="{serviceModel>PSPNR}" text="{serviceModel>PROJ_NAME}"/>
+									</suggestionItems>
+								</MultiInput>
+							</fb:control>
+						</fb:FilterGroupItem>
+						<fb:FilterGroupItem name="IdUSERG" label="{i18n>Main_ERNAM}" groupName="Group1" visibleInFilterBar="true">
+							<fb:control>
+								<MultiInput width="40%" id="IdERNAM" tokenUpdate="updateTokenIdClear" valueHelpRequest="valueHelpFilterNew" showSuggestion="true"
+									suggestionItems="{serviceModel>/filteredCreation}">
+									<suggestionItems>
+										<core:Item key="{serviceModel>ERNAM}" text="{serviceModel>CREATION_NAME} {serviceModel>CREATION_LNAME}"/>
+									</suggestionItems>
+								</MultiInput>
+							</fb:control>
+						</fb:FilterGroupItem>
+					</fb:filterGroupItems>
+				</fb:FilterBar>
+			<!-- END FILTER BAR -->	
+		
+		<IconTabBar id="iconTabBar" expandable="true" select=".onIconTabFilterSelect" >
+			<!-- General Data Tab -->
+			<items>
+				<IconTabFilter
+                        showAll="true"
+                        count="{viewModelCount>/filteredCount}"
+                        text="{i18n>title}"
+                        key="All" />
+				<IconTabSeparator />
+					<IconTabFilter
+						key="Active"
+						icon="sap-icon://accept"
+						text="{i18n>IT_Status_0}"/>
+					<IconTabFilter 
+						key="PartialReception"
+						icon="sap-icon://information"
+						iconColor="Neutral"
+						text="{i18n>IT_Status_1}"/>
+					<IconTabFilter
+						key="TotalReception"
+						icon="sap-icon://complete"
+						iconColor="Positive"
+						text="{i18n>IT_Status_2}"/>
+					<IconTabFilter
+						key="Deleted"
+						icon="sap-icon://delete"
+						iconColor="Negative"
+						text="{i18n>IT_Status_3}"/>
+			</items>
+			<content>
+			<ScrollContainer
+                    id="ProgAlmacenItemsScrollContainer"
+                    width="100%">
+				<Table
+					id="progrAlmacenTable"
+					width="auto"
+					items="{serviceModel>/generalData}"
+					noDataText="{i18n>tableNoDataText}"
+					busyIndicatorDelay="{serviceModel>/tableBusyDelay}"
+					growing="true"
+					growingScrollToLoad="true" sticky="HeaderToolbar"
+					mode="MultiSelect" growingThreshold="30" updateStarted="onUpdateFinished">
+					<headerToolbar>
+						<OverflowToolbar width="100%">
+							<ToolbarSpacer />
+							<Button id="idBtnCreate" visible="false"
+								icon="sap-icon://add" text="{i18n>create}"
+								tooltip="{i18n>create}" type="Emphasized"
+								press="navigateToCreate"/>
+							<Button
+								icon="sap-icon://excel-attachment"
+								tooltip="{i18n>ExcelTool}"
+								press="exportToExcel" visible="false"/>
+							
+							<Button
+								icon="sap-icon://settings"
+								tooltip="{i18n>setColumns}"
+								press="onOpenColumnSettings"/>
+						</OverflowToolbar>
+					</headerToolbar>
+					<columns>
+						<Column id="EBELNColumn" width="8rem" hAlign="Left">
+							<Text text="{i18n>EBELN}"/>
+						</Column>
+						<Column id="STATUSColumn" width="8rem" hAlign="Left">
+							<Text text="{i18n>STATUS}"/>
+						</Column>
+						<Column id="PROJ_NAMEColumn" width="8rem" hAlign="Left">
+							<Text text="{i18n>PROJ_NAME}"/>
+						</Column>
+						<Column id="ERNAMColumn" width="8rem" hAlign="Left">
+							<Text text="{i18n>Main_ERNAM}"/>
+						</Column>
+					</columns>
+
+					<items>
+						<ColumnListItem vAlign="Middle" type="Navigation" press=".getDetailReadSpecificPos">
+							<cells>
+								<ObjectIdentifier title="{serviceModel>EBELN}"/>
+								<!--<ObjectIdentifier title="{= ${serviceModel>GENERAL_STATUS} === '1' ? 'Open' : 'Closed' }"/>-->
+								<ObjectStatus 
+									text="{= 
+										${serviceModel>GENERAL_STATUS} === '0' ? ${i18n>IT_Status_0} :
+										${serviceModel>GENERAL_STATUS} === '1' ? ${i18n>IT_Status_1} :
+										${serviceModel>GENERAL_STATUS} === '2' ? ${i18n>IT_Status_2} :
+										${i18n>IT_Status_3} 
+									}"
+									state="{= 
+										${serviceModel>GENERAL_STATUS} === '0' ? 'None' :
+										${serviceModel>GENERAL_STATUS} === '1' ? 'Information' :
+										${serviceModel>GENERAL_STATUS} === '2' ? 'Success' :
+										'Error'
+									}"
+									icon="{= 
+										${serviceModel>GENERAL_STATUS} === '0' ? 'sap-icon://accept' :
+										${serviceModel>GENERAL_STATUS} === '1' ? 'sap-icon://information' :
+										${serviceModel>GENERAL_STATUS} === '2' ? 'sap-icon://complete' :
+										'sap-icon://delete'
+									}"/>
+								<ObjectIdentifier title="{serviceModel>PROJ_NAME}"/>
+								<ObjectIdentifier title="{serviceModel>CREATION_NAME} {serviceModel>CREATION_LNAME}"/>
+							</cells>
+						</ColumnListItem>
+					</items>
+				</Table>
+			</ScrollContainer>
+
+				<Dialog id="columnSettingsDialog" title="{i18n>setColumns}">
+					<content>
+						<!--<List id="columnList" mode="MultiSelect">
+							<StandardListItem title="{i18n>EBELN}" selected="{settingsModel>/EBELN}" press="onToggleColumnVisibility"/>
+							<StandardListItem title="{i18n>STATUS}" selected="{settingsModel>/EBELP}" press="onToggleColumnVisibility"/>
+							<StandardListItem title="{i18n>ID_PEP}" selected="{settingsModel>/ETENR}" press="onToggleColumnVisibility"/>
+							<StandardListItem title="{i18n>PROJ_NAME}" selected="{settingsModel>/UNIQID}" press="onToggleColumnVisibility"/>
+							<StandardListItem title="{i18n>LIFNR}" selected="{settingsModel>/ID_CON}" press="onToggleColumnVisibility"/>
+							<StandardListItem title="{i18n>SUP_NAME}" selected="{settingsModel>/CONPO}" press="onToggleColumnVisibility"/>
+						</List>-->
+					</content>
+					<beginButton>
+						<Button text="OK" press="onCloseColumnSettings"/>
+					</beginButton>
+				</Dialog>
+			</content>
+		</IconTabBar>
+		</semantic:headerContent>
+	</semantic:SemanticPage>
+</mvc:View>

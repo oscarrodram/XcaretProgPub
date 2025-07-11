@@ -1,0 +1,230 @@
+<mvc:View
+	controllerName="com.xcaret.receptionpublic.controller.ItemReceptions"
+	xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m"
+	xmlns:c="sap.ui.core" displayBlock="true"
+    xmlns:uxap="sap.uxap" xmlns:layout="sap.ui.layout"
+    xmlns:forms="sap.ui.layout.form" xmlns:table="sap.ui.table"
+	height="100%" busyIndicatorDelay="0" beforeExit="onViewBeforeExit">
+    <uxap:ObjectPageLayout id="ObjectPageLayout" enableLazyLoading="true" upperCaseAnchorBar="false">
+		<uxap:headerTitle>
+			<uxap:ObjectPageDynamicHeaderTitle>
+				<uxap:expandedHeading>
+					<Title text="{= ${JSONModel>/Reception/Modification} === true ?
+						 ${JSONModel>/Reception/EBELN} : ${i18n>I_Header_New_Reception} }"
+						wrapping="true" />
+				</uxap:expandedHeading>
+				<uxap:actions>
+					<Button id="SaveButton" text="{i18n>I_Header_Button_Save}" type="Emphasized" press="onSaveReception"/>
+					<Button id="EditButton" text="{i18n>I_Header_Button_Edit}" type="Emphasized" press="onEditReception" visible="{= ${JSONModel>/Reception/Modification} === true }"/>
+				</uxap:actions>
+			</uxap:ObjectPageDynamicHeaderTitle>
+		</uxap:headerTitle>
+
+		<uxap:headerContent>
+			<FlexBox wrap="Wrap" fitContainer="true" >
+				<!--<Avatar
+							displaySize="XL"
+							backgroundColor="Placeholder"
+							displayShape="Square"
+							press="onPress"/>-->
+
+				<layout:VerticalLayout class="sapUiSmallMarginBeginEnd">
+					<Text id="textCreatorField" class="sapUiTinyMargin" text="{JSONModel>/Reception/CREATION_NAME} {JSONModel>/Reception/CREATION_LNAME}" 
+						visible="{= ${JSONModel>/Reception/Modification} === true }"/>
+					<ObjectStatus id="statusScheduleLine" class="sapUiTinyMargin" title="{i18n>STATUS}" 
+							text="{= 
+								${JSONModel>/Reception/GENERAL_STATUS} === '0' ? ${i18n>IT_Status_0} :
+								${JSONModel>/Reception/GENERAL_STATUS} === '1' ? ${i18n>IT_Status_1} :
+								${JSONModel>/Reception/GENERAL_STATUS} === '2' ? ${i18n>IT_Status_2} :
+								${i18n>IT_Status_3} 
+							}"
+							state="{= 
+								${JSONModel>/Reception/GENERAL_STATUS} === '0' ? 'None' :
+								${JSONModel>/Reception/GENERAL_STATUS} === '1' ? 'Information' :
+								${JSONModel>/Reception/GENERAL_STATUS} === '2' ? 'Success' :
+								'Error'
+							}"
+							icon="{= 
+								${JSONModel>/Reception/GENERAL_STATUS} === '0' ? 'sap-icon://accept' :
+								${JSONModel>/Reception/GENERAL_STATUS} === '1' ? 'sap-icon://information' :
+								${JSONModel>/Reception/GENERAL_STATUS} === '2' ? 'sap-icon://complete' :
+								'sap-icon://delete'
+							}"
+							visible="{= ${JSONModel>/Reception/Modification} === true }"/>
+				</layout:VerticalLayout>
+			</FlexBox>
+		</uxap:headerContent>
+
+		<uxap:sections>
+			<uxap:ObjectPageSection titleUppercase="false" title="{i18n>I_General_Header_Title}">
+				<uxap:subSections>
+					<uxap:ObjectPageSubSection titleUppercase="false">
+						<uxap:blocks>
+							<forms:SimpleForm editable="true" layout="ColumnLayout">
+
+								<c:Title text="General"/>
+
+								<Label text="{i18n>I_General_Project}"/>
+								<MultiInput id="InputProject" showSuggestion="true" tokenUpdate="onMultiProjectTokenUpdate"
+									showValueHelp="true" valueHelpRequest=".onInputProjectValueHelpRequest" suggestionItems="{JSONModel>/Project}">
+									<suggestionItems>
+										<c:Item key="{JSONModel>ID_PEP}" text="{JSONModel>NAME1}"/>
+									</suggestionItems>
+								</MultiInput>
+
+								<Label text="{i18n>I_General_Location}"/>
+								<MultiInput id="InputLocation" showSuggestion="true" tokenUpdate="onMultiLocationTokenUpdate" enabled="false"
+									showValueHelp="true" valueHelpRequest=".onInputLocationValueHelpRequest" suggestionItems="{JSONModel>/Location}">
+									<suggestionItems>
+										<c:Item key="{JSONModel>NUHAB}" text="{JSONModel>LGPLAT}"/>
+									</suggestionItems>
+								</MultiInput>
+								<Link text="{i18n>I_General_Go_Location_App}" endIcon="sap-icon://inspect" press="onLinkPress"/>
+
+								<Label text="{i18n>I_General_Room}"/>
+								<Text  id="TextClaveHabitacion"/>
+
+							</forms:SimpleForm>
+						</uxap:blocks>
+						<uxap:blocks>
+							<forms:SimpleForm editable="true" layout="ColumnLayout">
+
+								<c:Title text="{i18n>I_General_D_Header_Title}"/>
+
+								<Label text="{i18n>I_General_Reception_Date}" />
+								<!--<DateTimePicker id="InputProggrammingDateTime" value="{
+									path: '/dtValue',
+									type: 'sap.ui.model.type.DateType',
+									formatOptions: {source: {pattern: 'yyyy-MM-dd'}}}" />-->
+								<DatePicker id="InputProggrammingDateTime" value="{
+									type: 'Date'}"
+								/>
+
+								<Label text="{i18n>I_General_Manager_Receptor}"></Label>
+								<MultiInput id="MultiInReceptorManager" showSuggestion="true" enabled="false" showValueHelp="true"
+									valueHelpRequest=".onMultiInputReceptorManagerValueHelpRequest" suggestionItems="{JSONModel>/User}">
+									<suggestionItems>
+										<c:Item key="{JSONModel>ERNAM}" text="{JSONModel>NAME} {JSONModel>LNAME}"/>
+									</suggestionItems>
+								</MultiInput>
+								<Label text="{i18n>I_General_Quantity}"></Label>
+								<Input id="idUnitQuantityInput" type="Number" maxLength="3" width="25%" liveChange="onInputHabQuantityLiveChange" />
+							</forms:SimpleForm>
+						</uxap:blocks>
+					</uxap:ObjectPageSubSection>
+					<uxap:ObjectPageSubSection titleUppercase="false">
+						<uxap:blocks>
+							<ScrollContainer horizontal="true" vertical="true">
+								<Table id="ScheduleLineItemTable" width="auto" updateFinished="updateFinishedTable"
+									items="{ 
+										path: 'JSONModel>/ScheduleLine'
+									}" alternateRowColors="true" growingThreshold="100"
+									noDataText="{i18n>tableNoDataText}" busyIndicatorDelay="{serviceModel>/tableBusyDelay}"
+									growing="true" growingScrollToLoad="true" selectionChange="onSelectionItemChange">
+									<headerToolbar>
+										<OverflowToolbar>
+											<Title id="tableHeader" text="{i18n>I_General_D_Header_Title}" />
+											<Button text="{i18n>Table_Open}" enabled="false" id="OpenItemButton"
+												press="onChangeItemStatus" ariaDescribedBy="rejectButtonDescription genericButtonDescription">
+											</Button>
+											<Button type="Reject" text="{i18n>Table_Cancel}" enabled="false" id="CancelItemButton"
+												press="onChangeItemStatus" ariaDescribedBy="rejectButtonDescription genericButtonDescription">
+											</Button>
+											<ToolbarSpacer />
+											<Button id="ReferenceToButtonStyleSheet" text="{i18n>IT_ReferenceMaterialTemplate}" 
+											enabled="false" type="Emphasized" press="onPressReferenceStyleSheet">
+												<customData>
+													<BadgeCustomData id="idStyleSheetBadgeCustomData"
+														key="badgeStyleSheet"/>
+												</customData>
+											</Button>
+											<Button id="ReferenceToButtonContract" text="{i18n>IT_ReferenceContract}" 
+											enabled="false" type="Emphasized" press="onPressReferenceContract">
+												<customData>
+													<BadgeCustomData id="idContractBadgeCustomData"
+														key="badgeContract"/>
+												</customData>
+											</Button>
+											<Button id="ReferenceToButtonRequirement" text="{i18n>IT_ReferenceRequirement}" 
+											enabled="false" type="Emphasized" press="onPressReferenceRequirement">
+												<customData>
+													<BadgeCustomData id="idRequirementBadgeCustomData"
+														key="badgeRequirement"/>
+												</customData>
+											</Button>
+										</OverflowToolbar>
+									</headerToolbar>
+									<columns>
+										<Column id="IT_Key" width="8rem" hAlign="Left" visible="false">
+											<Text/>
+										</Column>
+										<Column id="IT_PositionItem" width="3rem" hAlign="Left">
+											<Text text="{i18n>IT_PositionItem}"/>
+										</Column>
+										<Column id="IT_DocumentType" width="8rem" hAlign="Left" visible="false">
+											<Text text="{i18n>IT_DocumentType} - {i18n>IT_ID}"/>
+										</Column>
+										<Column id="IT_Material_Image" width="5rem" hAlign="Center">
+											<Text text="{i18n>IT_Material_Image}"/>
+										</Column>
+										<Column id="IT_DocumentType_Front" width="8rem" hAlign="Center">
+											<Text text="{i18n>IT_ID}"/>
+										</Column>
+										<Column id="IT_Status" width="5rem" hAlign="Left">
+											<Text text="{i18n>IT_Status}"/>
+										</Column>
+										<Column id="IT_Material" width="8rem" hAlign="Left">
+											<Text text="{i18n>IT_Material}"/>
+										</Column>
+										<Column id="IT_Material_Image_Status" width="8rem" hAlign="Left" visible="false">
+											<Text/>
+										</Column>
+										<Column id="IT_BoughtQuantity" width="6rem" hAlign="Left">
+											<Text text="{i18n>IT_BoughtQuantity}"/>
+										</Column>
+										<Column id="IT_DeliveredQuantity" width="6rem" hAlign="Left">
+											<Text text="{i18n>IT_DeliveredQuantity}"/>
+										</Column>
+										<Column id="IT_AvailableQuantity" width="6rem" hAlign="Left" visible="{= ${JSONModel>/Reception/Modification} === true }">
+											<Text text="{i18n>IT_AvailableQuantity}"/>
+										</Column>
+									</columns>
+
+									<items>
+										<ColumnListItem vAlign="Middle" type="Navigation" press=".onPressTableDetail">
+											<cells>
+												<ObjectIdentifier title="{JSONModel>IT_Key}"/>
+												<ObjectIdentifier title="{JSONModel>IT_PositionItem}"/>
+												<ObjectIdentifier title="{JSONModel>IT_DocumentType} - {JSONModel>IT_ID}" visible="false"/>
+												<VBox><Image src="{JSONModel>IT_Material_Image}" width="auto" height="100px"/></VBox>
+												<ObjectIdentifier title="{JSONModel>IT_ID_Front}"/>
+												<ObjectStatus  text="{JSONModel>IT_Status_Desc}"
+													state="{= 
+														${JSONModel>IT_Status} === '0' ? 'None' :
+														${JSONModel>IT_Status} === '1' ? 'Information' :
+														${JSONModel>IT_Status} === '2' ? 'Success' :
+														'Error'
+													}"
+													icon="{= 
+														${JSONModel>IT_Status} === '0' ? 'sap-icon://accept' :
+														${JSONModel>IT_Status} === '1' ? 'sap-icon://information' :
+														${JSONModel>IT_Status} === '2' ? 'sap-icon://complete' :
+														'sap-icon://delete'
+													}"/>
+												<ObjectIdentifier title="{JSONModel>IT_Material_ID} {JSONModel>IT_Material}"/>
+												<ObjectIdentifier title="{JSONModel>IT_Material_Image_Status}" visible="false"/>
+												<ObjectIdentifier title="{JSONModel>IT_BoughtQuantity}"/>
+												<Input value="{JSONModel>IT_DeliveredQuantity}" type="Number" enabled="{= ${JSONModel>/Reception/Modification} !== true }"/>
+												<ObjectIdentifier title="{JSONModel>IT_AvailableQuantity}" visible="{= ${JSONModel>/Reception/Modification} === true }"/>
+											</cells>
+										</ColumnListItem>
+									</items>
+								</Table>
+							</ScrollContainer>
+						</uxap:blocks>
+					</uxap:ObjectPageSubSection>
+				</uxap:subSections>
+			</uxap:ObjectPageSection>
+		</uxap:sections>
+	</uxap:ObjectPageLayout>
+</mvc:View>
