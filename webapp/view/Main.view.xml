@@ -47,13 +47,13 @@
 					</fb:filterGroupItems>
 				</fb:FilterBar>
 			<!-- END FILTER BAR -->	
-		
+
 		<IconTabBar id="iconTabBar" expandable="true" select=".onIconTabFilterSelect" >
 			<!-- General Data Tab -->
 			<items>
 				<IconTabFilter
                         showAll="true"
-                        count="{viewModelCount>/filteredCount}"
+                        count="{= ${serviceModel>/generalData}.length }"
                         text="{i18n>title}"
                         key="All" />
 				<IconTabSeparator />
